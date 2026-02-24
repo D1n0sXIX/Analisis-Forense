@@ -12,7 +12,7 @@
 
 | Archivo | Tipo aparente | Estado |
 |---|---|---|
-| `cat.jpg` | Imagen JPEG | 🔲 Pendiente |
+| `cat.jpg` | Imagen JPEG | ✅ Resuelto |
 | `PurpleThing.jpeg` | PNG camuflado como JPEG | ✅ Resuelto |
 | `reto1` | Sin extensión — tipo desconocido | 🔲 Pendiente |
 | `SuspectData.dd` | Volcado raw de dispositivo | 🔲 Pendiente |
@@ -88,11 +88,49 @@ Esto creó la carpeta `output/png/` con dos ficheros:
 
 ---
 
+### Entrada #3 — 24/02/2026 · Análisis de cat.jpg
+
+Lo primero fue abrirla visualmente — una foto de un gato, nada sospechoso:
+```bash
+xdg-open cat.jpg
+```
+
+**Con `exiftool`** revisé los metadatos:
+```bash
+exiftool cat.jpg
+```
+A diferencia de PurpleThing, aquí la extensión sí es correcta — es un JPEG real. Sin embargo, en los metadatos aparecieron campos sospechosos:
+- `Copyright Notice` → `PicoCTF`
+- `Rights` → `PicoCTF`
+- `License` → `cGljb0NURnt0aGVfbTN0YWRhdGFfMXNfbW9kaWZpZWR9`
+
+**PicoCTF** es una competición CTF famosa, claramente alguien metió ese texto a propósito. El campo `License` contenía una cadena de aspecto codificado.
+
+Para intentar identificar el tipo de codificación guardé la cadena en un fichero y usé `hash-identifier`:
+```bash
+echo "cGljb0NURnt0aGVfbTN0YWRhdGFfMXNfbW9kaWZpZWR9" >> exiftoolCatCifrado.txt
+hash-identifier exiftoolCatCifrado.txt
+```
+Resultado: `Not Found` — tiene sentido, ya que `hash-identifier` detecta hashes irreversibles (MD5, SHA...) pero Base64 es una codificación reversible, no un hash. Son cosas distintas:
+- Un **hash** es irreversible (MD5, SHA256...)
+- Una **codificación** como Base64 es reversible, no es cifrado real
+
+Probé directamente con Base64:
+```bash
+echo "cGljb0NURnt0aGVfbTN0YWRhdGFfMXNfbW9kaWZpZWR9" | base64 -d
+```
+Y ahí apareció el flag. ✅
+
+**Estado:** ✅ Resuelto
+
+---
+
 ## 🚩 Flags encontrados
 
 | # | Flag | Ubicación | Técnica utilizada |
 |---|---|---|---|
 | 1 | `ABCTF{b1nw4lk_is_us3ful}` | `PurpleThing.jpeg` → imagen oculta tras IEND | foremost / binwalk |
+| 2 | `picoCTF{the_m3tadata_1s_modified}` | `cat.jpg` → campo License en metadatos EXIF | exiftool + base64 |
 
 ---
 
@@ -103,10 +141,12 @@ Esto creó la carpeta `output/png/` con dos ficheros:
 | `exiftool` | Análisis de metadatos EXIF |
 | `strings` | Extracción de cadenas legibles del binario |
 | `steghide` | Detección de esteganografía clásica |
-| `binwalk` | Detección y extracción de ficheros embebidos |
+| `binwalk` | Detección de ficheros embebidos |
 | `foremost` | Carving y extracción de ficheros por cabeceras |
 | `xdg-open` | Visualización de ficheros desde terminal |
 | `file` | Identificación del tipo real de un fichero |
+| `hash-identifier` | Identificación de tipos de hash |
+| `base64` | Decodificación de cadenas en Base64 |
 
 ---
 
@@ -117,17 +157,19 @@ Herramientas conocidas y utilizadas a lo largo de toda la investigación:
 | Herramienta | Categoría | Para qué sirve |
 |---|---|---|
 | `file` | Identificación | Revela el tipo real de un fichero independientemente de su extensión |
-| `exiftool` | Metadatos | Extrae metadatos EXIF y detecta anomalías como trailer data |
+| `exiftool` | Metadatos | Extrae metadatos EXIF y detecta anomalías como campos modificados |
 | `strings` | Análisis binario | Muestra cadenas de texto legibles dentro de cualquier binario |
-| `binwalk` | Análisis binario | Detecta y extrae ficheros embebidos dentro de otros ficheros |
+| `binwalk` | Análisis binario | Detecta ficheros embebidos dentro de otros ficheros |
 | `foremost` | Carving | Recupera ficheros ocultos buscando sus cabeceras y footers |
 | `steghide` | Esteganografía | Detecta y extrae datos ocultos en imágenes mediante esteganografía clásica |
+| `hash-identifier` | Criptoanálisis | Identifica el tipo de hash o codificación de una cadena |
+| `base64` | Criptoanálisis | Codifica y decodifica cadenas en Base64 |
 | `xdg-open` | Visualización | Abre ficheros con la aplicación por defecto del sistema |
 
 ---
 
 ## 📌 Notas y pendientes
 
+- [x] ~~Analizar imágenes en busca de datos ocultos~~
 - [ ] Identificar tipo real de `reto1` con `file reto1`
-- [ ] Analizar imágenes en busca de esteganografía (`steghide`, `binwalk`, `exiftool`)
 - [ ] Montar o examinar `SuspectData.dd` (`fdisk -l`, `mount`, `autopsy`)
