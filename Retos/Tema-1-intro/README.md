@@ -15,7 +15,7 @@
 | `cat.jpg` | Imagen JPEG | ✅ Resuelto |
 | `PurpleThing.jpeg` | PNG camuflado como JPEG | ✅ Resuelto |
 | `reto1` | Sin extensión — tipo desconocido | 🔲 Pendiente |
-| `SuspectData.dd` | Volcado raw de dispositivo | 🔲 Pendiente |
+| `SuspectData.dd` | Volcado raw de dispositivo FAT16 | 🔍 En progreso |
 
 ---
 
@@ -125,12 +125,51 @@ Y ahí apareció el flag. ✅
 
 ---
 
+### Entrada #4 — 24/02/2026 · Análisis de SuspectData.dd
+
+**Con `file` y `fdisk -l`** identifiqué el tipo de disco:
+```bash
+file SuspectData.dd
+fdisk -l SuspectData.dd
+```
+Resultado: disco de **30 MiB**, sistema de archivos **FAT16**, tipo DOS/MBR, sin particiones — el sistema de archivos ocupa todo el disco desde el offset 0. Se puede montar directamente.
+
+**Monté la imagen** para explorarla como un disco real:
+```bash
+sudo mkdir /mnt/suspectdata
+sudo mount -o loop SuspectData.dd /mnt/suspectdata
+ls /mnt/suspectdata
+```
+Contenido encontrado: varias imágenes de gatos y un fichero llamado `hello` sin extensión.
+
+**El fichero `hello`** resultó ser el más interesante:
+```bash
+cat /mnt/suspectdata/hello
+```
+Mensaje: `Hello! You found some data! Well done! The Secret Code is "Let's go get some coffee"`.
+
+**Analicé las imágenes** en busca de datos ocultos. Primero con `exiftool` sobre todos los ficheros — metadatos limpios, nada sospechoso. Luego con `steghide` usando la contraseña encontrada en `hello`, probando todas las imágenes con un bucle:
+```bash
+for img in /mnt/suspectdata/*.jpg /mnt/suspectdata/*.jpeg; do
+    echo "Probando: $img"
+    steghide extract -sf "$img" -p "Let's go get some coffee"
+done
+```
+Ninguna imagen devolvió datos ocultos.
+
+**Siguiente paso:** usar `foremost` sobre el volcado completo para intentar recuperar ficheros eliminados que no aparecen con `ls`.
+
+**Estado:** 🔍 En progreso — pendiente de recuperación de ficheros eliminados
+
+---
+
 ## 🚩 Flags encontrados
 
 | # | Flag | Ubicación | Técnica utilizada |
 |---|---|---|---|
 | 1 | `ABCTF{b1nw4lk_is_us3ful}` | `PurpleThing.jpeg` → imagen oculta tras IEND | foremost / binwalk |
 | 2 | `picoCTF{the_m3tadata_1s_modified}` | `cat.jpg` → campo License en metadatos EXIF | exiftool + base64 |
+| ? | `The Secret Code is "Let's go get some coffee"` | `SuspectData.dd` → fichero `hello` | mount + cat |
 
 ---
 
@@ -147,6 +186,8 @@ Y ahí apareció el flag. ✅
 | `file` | Identificación del tipo real de un fichero |
 | `hash-identifier` | Identificación de tipos de hash |
 | `base64` | Decodificación de cadenas en Base64 |
+| `fdisk` | Análisis de estructura de disco |
+| `mount` | Montaje de imágenes de disco |
 
 ---
 
@@ -160,10 +201,12 @@ Herramientas conocidas y utilizadas a lo largo de toda la investigación:
 | `exiftool` | Metadatos | Extrae metadatos EXIF y detecta anomalías como campos modificados |
 | `strings` | Análisis binario | Muestra cadenas de texto legibles dentro de cualquier binario |
 | `binwalk` | Análisis binario | Detecta ficheros embebidos dentro de otros ficheros |
-| `foremost` | Carving | Recupera ficheros ocultos buscando sus cabeceras y footers |
+| `foremost` | Carving | Recupera ficheros ocultos o eliminados buscando sus cabeceras y footers |
 | `steghide` | Esteganografía | Detecta y extrae datos ocultos en imágenes mediante esteganografía clásica |
 | `hash-identifier` | Criptoanálisis | Identifica el tipo de hash o codificación de una cadena |
 | `base64` | Criptoanálisis | Codifica y decodifica cadenas en Base64 |
+| `fdisk` | Análisis de disco | Muestra la estructura y particiones de una imagen de disco |
+| `mount` | Análisis de disco | Monta imágenes de disco para explorarlas como sistemas de archivos reales |
 | `xdg-open` | Visualización | Abre ficheros con la aplicación por defecto del sistema |
 
 ---
@@ -171,5 +214,6 @@ Herramientas conocidas y utilizadas a lo largo de toda la investigación:
 ## 📌 Notas y pendientes
 
 - [x] ~~Analizar imágenes en busca de datos ocultos~~
+- [x] ~~Montar y explorar SuspectData.dd~~
+- [ ] Recuperar ficheros eliminados de `SuspectData.dd` con `foremost`
 - [ ] Identificar tipo real de `reto1` con `file reto1`
-- [ ] Montar o examinar `SuspectData.dd` (`fdisk -l`, `mount`, `autopsy`)

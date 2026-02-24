@@ -1,0 +1,342 @@
+======== /mnt/suspectdata/Funny-Cat-Pictures-cats-935656_500_375.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Funny-Cat-Pictures-cats-935656_500_375.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 36 kB
+File Modification Date/Time     : 2018:10:10 01:55:34+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:55:34+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : inches
+X Resolution                    : 100
+Y Resolution                    : 100
+Image Width                     : 500
+Image Height                    : 375
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:4:4 (1 1)
+Image Size                      : 500x375
+Megapixels                      : 0.188
+======== /mnt/suspectdata/hqdefault.jpg
+ExifTool Version Number         : 13.44
+File Name                       : hqdefault.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 25 kB
+File Modification Date/Time     : 2018:10:10 01:53:22+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:53:22+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 480
+Image Height                    : 360
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 480x360
+Megapixels                      : 0.173
+======== /mnt/suspectdata/img_5_funny_things_that_cats_do_719_600.jpg
+ExifTool Version Number         : 13.44
+File Name                       : img_5_funny_things_that_cats_do_719_600.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 30 kB
+File Modification Date/Time     : 2018:10:10 01:54:06+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:06+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : inches
+X Resolution                    : 96
+Y Resolution                    : 96
+Image Width                     : 600
+Image Height                    : 600
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 600x600
+Megapixels                      : 0.360
+======== /mnt/suspectdata/Top-25-Funny-Cat-Memes-8-cats-memes.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Top-25-Funny-Cat-Memes-8-cats-memes.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 72 kB
+File Modification Date/Time     : 2018:10:10 01:54:58+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:58+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Profile CMM Type                : Little CMS
+Profile Version                 : 2.1.0
+Profile Class                   : Display Device Profile
+Color Space Data                : RGB
+Profile Connection Space        : XYZ
+Profile Date Time               : 2012:01:25 03:41:57
+Profile File Signature          : acsp
+Primary Platform                : Apple Computer Inc.
+CMM Flags                       : Not Embedded, Independent
+Device Manufacturer             : 
+Device Model                    : 
+Device Attributes               : Reflective, Glossy, Positive, Color
+Rendering Intent                : Perceptual
+Connection Space Illuminant     : 0.9642 1 0.82491
+Profile Creator                 : Little CMS
+Profile ID                      : 0
+Profile Description             : c2
+Profile Copyright               : FB
+Media White Point               : 0.9642 1 0.82491
+Media Black Point               : 0.01205 0.0125 0.01031
+Red Matrix Column               : 0.43607 0.22249 0.01392
+Green Matrix Column             : 0.38515 0.71687 0.09708
+Blue Matrix Column              : 0.14307 0.06061 0.7141
+Red Tone Reproduction Curve     : (Binary data 64 bytes, use -b option to extract)
+Green Tone Reproduction Curve   : (Binary data 64 bytes, use -b option to extract)
+Blue Tone Reproduction Curve    : (Binary data 64 bytes, use -b option to extract)
+Image Width                     : 564
+Image Height                    : 533
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 564x533
+Megapixels                      : 0.301
+======== /mnt/suspectdata/Top-30-Funny-Cat-Memes-Hilarious.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Top-30-Funny-Cat-Memes-Hilarious.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 39 kB
+File Modification Date/Time     : 2018:10:10 01:54:40+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:40+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 575
+Image Height                    : 421
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 575x421
+Megapixels                      : 0.242
+    5 image files read
+======== /mnt/suspectdata/Funny-Cat-Pictures-cats-935656_500_375.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Funny-Cat-Pictures-cats-935656_500_375.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 36 kB
+File Modification Date/Time     : 2018:10:10 01:55:34+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:55:34+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : inches
+X Resolution                    : 100
+Y Resolution                    : 100
+Image Width                     : 500
+Image Height                    : 375
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:4:4 (1 1)
+Image Size                      : 500x375
+Megapixels                      : 0.188
+======== /mnt/suspectdata/hqdefault.jpg
+ExifTool Version Number         : 13.44
+File Name                       : hqdefault.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 25 kB
+File Modification Date/Time     : 2018:10:10 01:53:22+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:53:22+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 480
+Image Height                    : 360
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 480x360
+Megapixels                      : 0.173
+======== /mnt/suspectdata/img_5_funny_things_that_cats_do_719_600.jpg
+ExifTool Version Number         : 13.44
+File Name                       : img_5_funny_things_that_cats_do_719_600.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 30 kB
+File Modification Date/Time     : 2018:10:10 01:54:06+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:06+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : inches
+X Resolution                    : 96
+Y Resolution                    : 96
+Image Width                     : 600
+Image Height                    : 600
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 600x600
+Megapixels                      : 0.360
+======== /mnt/suspectdata/Top-25-Funny-Cat-Memes-8-cats-memes.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Top-25-Funny-Cat-Memes-8-cats-memes.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 72 kB
+File Modification Date/Time     : 2018:10:10 01:54:58+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:58+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Profile CMM Type                : Little CMS
+Profile Version                 : 2.1.0
+Profile Class                   : Display Device Profile
+Color Space Data                : RGB
+Profile Connection Space        : XYZ
+Profile Date Time               : 2012:01:25 03:41:57
+Profile File Signature          : acsp
+Primary Platform                : Apple Computer Inc.
+CMM Flags                       : Not Embedded, Independent
+Device Manufacturer             : 
+Device Model                    : 
+Device Attributes               : Reflective, Glossy, Positive, Color
+Rendering Intent                : Perceptual
+Connection Space Illuminant     : 0.9642 1 0.82491
+Profile Creator                 : Little CMS
+Profile ID                      : 0
+Profile Description             : c2
+Profile Copyright               : FB
+Media White Point               : 0.9642 1 0.82491
+Media Black Point               : 0.01205 0.0125 0.01031
+Red Matrix Column               : 0.43607 0.22249 0.01392
+Green Matrix Column             : 0.38515 0.71687 0.09708
+Blue Matrix Column              : 0.14307 0.06061 0.7141
+Red Tone Reproduction Curve     : (Binary data 64 bytes, use -b option to extract)
+Green Tone Reproduction Curve   : (Binary data 64 bytes, use -b option to extract)
+Blue Tone Reproduction Curve    : (Binary data 64 bytes, use -b option to extract)
+Image Width                     : 564
+Image Height                    : 533
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 564x533
+Megapixels                      : 0.301
+======== /mnt/suspectdata/Top-30-Funny-Cat-Memes-Hilarious.jpg
+ExifTool Version Number         : 13.44
+File Name                       : Top-30-Funny-Cat-Memes-Hilarious.jpg
+Directory                       : /mnt/suspectdata
+File Size                       : 39 kB
+File Modification Date/Time     : 2018:10:10 01:54:40+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:54:40+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 575
+Image Height                    : 421
+Encoding Process                : Progressive DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 575x421
+Megapixels                      : 0.242
+======== /mnt/suspectdata/7ffab4a1fedc76397952d20d3cdd125a_400x400.jpeg
+ExifTool Version Number         : 13.44
+File Name                       : 7ffab4a1fedc76397952d20d3cdd125a_400x400.jpeg
+Directory                       : /mnt/suspectdata
+File Size                       : 30 kB
+File Modification Date/Time     : 2018:10:10 01:55:52+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:55:52+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 400
+Image Height                    : 400
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 400x400
+Megapixels                      : 0.160
+======== /mnt/suspectdata/download.jpeg
+ExifTool Version Number         : 13.44
+File Name                       : download.jpeg
+Directory                       : /mnt/suspectdata
+File Size                       : 8.0 kB
+File Modification Date/Time     : 2018:10:10 01:53:44+02:00
+File Access Date/Time           : 2026:02:24 01:00:00+01:00
+File Inode Change Date/Time     : 2018:10:10 01:53:44+02:00
+File Permissions                : -rwxr-xr-x
+File Type                       : JPEG
+File Type Extension             : jpg
+MIME Type                       : image/jpeg
+JFIF Version                    : 1.01
+Resolution Unit                 : None
+X Resolution                    : 1
+Y Resolution                    : 1
+Image Width                     : 260
+Image Height                    : 194
+Encoding Process                : Baseline DCT, Huffman coding
+Bits Per Sample                 : 8
+Color Components                : 3
+Y Cb Cr Sub Sampling            : YCbCr4:2:0 (2 2)
+Image Size                      : 260x194
+Megapixels                      : 0.050
+    7 image files read
