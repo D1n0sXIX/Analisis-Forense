@@ -1,0 +1,17 @@
+# Memory dumps - demasiado pesados para GitHub
+*.vmem
+*.raw
+*.mem
+*.dmp
+
+# Comprimidos con malware - GitHub los puede eliminar/bloquear
+*.zip
+*.rar
+
+# Basura de macOS
+__MACOSX/
+._*
+.DS_Store
+
+# Artefactos temporales de Volatility
+*.pyc
