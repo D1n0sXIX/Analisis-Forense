@@ -1,6 +1,7 @@
-# 🔍 Digital Forensics Lab
+# Digital Forensics Lab
 
-Personal repository for hands-on digital forensics challenges and CTF investigations.
+##Digital Forensics Class
+Personal class repository for hands-on digital forensics challenges and CTF investigations
 
 ## What's inside
 - Forensic case notes & timelines
