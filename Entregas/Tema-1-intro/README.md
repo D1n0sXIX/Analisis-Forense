@@ -1,6 +1,7 @@
 # 📓 Diario Forense — Tema 1: Intro
 
-**Investigador:** Alex  
+**Investigador:** Alejandro Mamán
+**Clase** INSO3A  
 **Caso:** Reto 1 — Análisis de artefactos ocultos  
 **Directorio de trabajo:** `~/AnalisisForense/Retos/Tema-1-intro`  
 **Fecha de inicio:** 23/02/2026  
@@ -8,18 +9,18 @@
 
 ---
 
-## 🗂️ Artefactos identificados
+## Ficheros identificados
 
 | Archivo | Tipo aparente | Estado |
 |---|---|---|
 | `cat.jpg` | Imagen JPEG | ✅ Resuelto |
 | `PurpleThing.jpeg` | PNG camuflado como JPEG | ✅ Resuelto |
-| `reto1` | Sin extensión — tipo desconocido | ✅ Resuelto  |
+| `reto1` | ELF 64-bit ejecutable Linux | ✅ Resuelto |
 | `SuspectData.dd` | Volcado raw de dispositivo FAT16 | 🔍 En progreso |
 
 ---
 
-## 📅 Entradas del diario
+## Entradas del diario
 
 ### Entrada #1 — 23/02/2026 · Reconocimiento inicial
 
@@ -163,7 +164,7 @@ Ninguna imagen devolvió datos ocultos.
 
 ---
 
-### Entrada #5 — [01/03/2026] · Análisis de reto1
+### Entrada #5 — 01/03/2026 · Análisis de reto1
 
 **Con `file`** identifiqué el tipo de archivo:
 ```bash
@@ -189,7 +190,7 @@ El nombre del flag ("strings it") confirma que la técnica correcta era usar `st
 ```bash
 foremost -i SuspectData.dd -o suspect_output
 ```
-Recuperó 9 imágenes JPG. Analicé sus metadatos con `exiftool` — todos limpios. Probé `steghi>
+Recuperó 9 imágenes JPG. Analicé sus metadatos con `exiftool` — todos limpios. Probé `steghide` con la contraseña en todas ellas — sin resultados.
 
 **Intenté usar Autopsy** por recomendación de un compañero:
 ```bash
@@ -199,9 +200,11 @@ Sin embargo, al intentar conectarme a `http://localhost:9999/autopsy` obtuve el 
 ```
 Can't open log: autopsy.log at /usr/share/autopsy/lib/Print.pm line 383.
 ```
-Probé ejecutarlo con `sudo autopsy` pero no conseguí solucionar el problema. Decidí continua>
+Probé ejecutarlo con `sudo autopsy` pero no conseguí solucionar el problema. Decidí continuar con otras herramientas de línea de comandos.
 
 **Estado:** 🔍 En progreso
+
+---
 
 ## 🚩 Flags encontrados
 
@@ -209,11 +212,12 @@ Probé ejecutarlo con `sudo autopsy` pero no conseguí solucionar el problema. D
 |---|---|---|---|
 | 1 | `ABCTF{b1nw4lk_is_us3ful}` | `PurpleThing.jpeg` → imagen oculta tras IEND | foremost / binwalk |
 | 2 | `picoCTF{the_m3tadata_1s_modified}` | `cat.jpg` → campo License en metadatos EXIF | exiftool + base64 |
+| 3 | `picoCTF{5tRIng5_1T_7f766a23}` | `reto1` → cadena en el binario | strings + grep |
 | ? | `The Secret Code is "Let's go get some coffee"` | `SuspectData.dd` → fichero `hello` | mount + cat |
 
 ---
 
-## 🧰 Herramientas utilizadas
+##  Herramientas utilizadas
 
 | Herramienta | Propósito |
 |---|---|
@@ -231,7 +235,7 @@ Probé ejecutarlo con `sudo autopsy` pero no conseguí solucionar el problema. D
 
 ---
 
-## 🧰 Arsenal completo del reto
+##  Arsenal completo del reto
 
 Herramientas conocidas y utilizadas a lo largo de toda la investigación:
 
@@ -251,9 +255,10 @@ Herramientas conocidas y utilizadas a lo largo de toda la investigación:
 
 ---
 
-## 📌 Notas y pendientes
+##  Notas y pendientes
 
 - [x] ~~Analizar imágenes en busca de datos ocultos~~
 - [x] ~~Montar y explorar SuspectData.dd~~
-- [ ] Recuperar ficheros eliminados de `SuspectData.dd` con `foremost`
-- [ ] Identificar tipo real de `reto1` con `file reto1`
+- [x] ~~Recuperar ficheros eliminados de `SuspectData.dd` con `foremost`~~
+- [x] ~~Identificar tipo real de `reto1` con `file reto1`~~
+- [ ] Encontrar flag en SuspectData.dd
