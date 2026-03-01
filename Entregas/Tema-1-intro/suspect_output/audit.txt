@@ -1,0 +1,31 @@
+Foremost version 1.5.7 by Jesse Kornblum, Kris Kendall, and Nick Mikus
+Audit File
+
+Foremost started at Sun Mar  1 17:54:35 2026
+Invocation: foremost -i SuspectData.dd -o suspect_output 
+Output directory: /home/d1n0/AnalisisForense/Entregas/Tema-1-intro/suspect_output
+Configuration file: /etc/foremost.conf
+------------------------------------------------------------------
+File: SuspectData.dd
+Start: Sun Mar  1 17:54:35 2026
+Length: 30 MB (31457280 bytes)
+ 
+Num	 Name (bs=512)	       Size	 File Offset	 Comment 
+
+0:	00000172.jpg 	      24 KB 	      88064 	 
+1:	00000224.jpg 	     115 KB 	     114688 	 
+2:	00000456.jpg 	       7 KB 	     233472 	 
+3:	00000472.jpg 	      29 KB 	     241664 	 
+4:	00000532.jpg 	      38 KB 	     272384 	 
+5:	00000612.jpg 	      70 KB 	     313344 	 
+6:	00000756.jpg 	      26 KB 	     387072 	 
+7:	00000812.jpg 	      34 KB 	     415744 	 
+8:	00000884.jpg 	      29 KB 	     452608 	 
+Finish: Sun Mar  1 17:54:36 2026
+
+9 FILES EXTRACTED
+	
+jpg:= 9
+------------------------------------------------------------------
+
+Foremost finished at Sun Mar  1 17:54:36 2026

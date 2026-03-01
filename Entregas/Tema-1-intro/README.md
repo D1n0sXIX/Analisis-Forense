@@ -163,6 +163,46 @@ Ninguna imagen devolvió datos ocultos.
 
 ---
 
+### Entrada #5 — [01/03/2026] · Análisis de reto1
+
+**Con `file`** identifiqué el tipo de archivo:
+```bash
+file reto1
+```
+Resultado: `ELF 64-bit LSB pie executable, x86-64` — un ejecutable de Linux.
+
+**Con `strings` y `grep`** busqué cadenas de texto que contuvieran "ctf":
+```bash
+strings reto1 | grep -i "ctf"
+```
+Entre el ruido apareció el flag claramente visible: `picoCTF{5tRIng5_1T_7f766a23}`
+
+El nombre del flag ("strings it") confirma que la técnica correcta era usar `strings`.
+
+**Estado:** ✅ Resuelto
+
+---
+
+### Entrada #6 — 01/03/2026 · Análisis de SuspectData.dd (continuación)
+
+**Usé `foremost`** para recuperar ficheros eliminados:
+```bash
+foremost -i SuspectData.dd -o suspect_output
+```
+Recuperó 9 imágenes JPG. Analicé sus metadatos con `exiftool` — todos limpios. Probé `steghi>
+
+**Intenté usar Autopsy** por recomendación de un compañero:
+```bash
+autopsy
+```
+Sin embargo, al intentar conectarme a `http://localhost:9999/autopsy` obtuve el error:
+```
+Can't open log: autopsy.log at /usr/share/autopsy/lib/Print.pm line 383.
+```
+Probé ejecutarlo con `sudo autopsy` pero no conseguí solucionar el problema. Decidí continua>
+
+**Estado:** 🔍 En progreso
+
 ## 🚩 Flags encontrados
 
 | # | Flag | Ubicación | Técnica utilizada |
