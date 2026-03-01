@@ -14,7 +14,7 @@
 |---|---|---|
 | `cat.jpg` | Imagen JPEG | ✅ Resuelto |
 | `PurpleThing.jpeg` | PNG camuflado como JPEG | ✅ Resuelto |
-| `reto1` | Sin extensión — tipo desconocido | 🔲 Pendiente |
+| `reto1` | Sin extensión — tipo desconocido | ✅ Resuelto  |
 | `SuspectData.dd` | Volcado raw de dispositivo FAT16 | 🔍 En progreso |
 
 ---
