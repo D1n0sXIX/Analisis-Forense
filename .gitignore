@@ -15,3 +15,5 @@ __MACOSX/
 
 # Artefactos temporales de Volatility
 *.pyc
+
+Practicas/
