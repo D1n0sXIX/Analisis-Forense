@@ -1,24 +1,50 @@
 #!/bin/bash
 # D1n0 - Alejandro Maman
-# orphan-detect.sh — Detects processes with orphaned PPIDs in Volatility pslist output
-# Usage: bash orphan-detect.sh <pslist.txt>
+# orphan-process-detector.sh — Detects processes with orphaned PPIDs in Volatility pslist output
+# Usage: bash orphan-process-detector.sh [-w] <pslist.txt>
+#
+# NOTE: Windows-only. Linux pslist (linux_pslist) does not expose a PPID column,
+# so orphaned-PPID detection is not applicable to Linux memory dumps.
+# The -w flag is accepted for explicitness/symmetry with the other tools.
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-BOLD='\033[1m'; NC='\033[0m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
-if [ "$#" -ne 1 ]; then
-    echo "Usage: bash orphan-detect.sh <pslist.txt>"
+MODE="windows"
+FILE=""
+
+# Parse flags
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -w) MODE="windows"; shift ;;
+        -l)
+            echo -e "${RED}Error: this script is Windows-only.${NC}"
+            echo -e "${YELLOW}Linux pslist does not include a PPID column,${NC}"
+            echo -e "${YELLOW}so orphaned-PPID detection cannot be performed on Linux dumps.${NC}"
+            exit 1
+            ;;
+        -h|--help)
+            echo "Usage: bash orphan-process-detector.sh [-w] <pslist.txt>"
+            echo ""
+            echo "Detects processes whose PPID does not exist in the pslist."
+            echo "Windows-only — relies on the PPID column produced by Volatility's pslist plugin."
+            exit 0
+            ;;
+        *)  FILE="$1"; shift ;;
+    esac
+done
+
+if [ -z "$FILE" ]; then
+    echo "Usage: bash orphan-process-detector.sh [-w] <pslist.txt>"
     exit 1
 fi
-
-FILE="$1"
 
 if [ ! -f "$FILE" ]; then
     echo -e "${RED}Error: file not found '$FILE'${NC}"
     exit 1
 fi
 
-# Extract PIDs and PPIDs (skip 2-line header)
+# Extract PIDs (skip 2-line header)
 mapfile -t PIDS < <(awk 'NR>2 && $3 ~ /^[0-9]+$/ {print $3}' "$FILE")
 
 # Build PID set
@@ -28,8 +54,9 @@ for pid in "${PIDS[@]}"; do
 done
 
 echo -e "\n${BOLD}==============================${NC}"
-echo -e "${BOLD} orphan-detect — Orphaned PPIDs${NC}"
+echo -e "${BOLD} orphan-detect — Orphaned PPIDs (Windows)${NC}"
 echo -e "${BOLD}==============================${NC}"
+echo -e "${CYAN}Note: Windows-only (relies on PPID column from pslist).${NC}"
 echo -e "File: $FILE\n"
 
 FOUND=0

@@ -1,0 +1,387 @@
+╔══════════════════════════════════════════════════════════════╗
+║           VOLATILITY 2 & 3 — CHEATSHEET FORENSE             ║
+╚══════════════════════════════════════════════════════════════╝
+
+ALIAS (instalados con el script):
+  vol2  →  /opt/volatility2/venv/bin/python /opt/volatility2/vol.py
+  vol3  →  /opt/volatility3/venv/bin/python /opt/volatility3/vol.py
+
+¿CUÁNDO SE USA VOLATILITY?
+  - Cuando tienes un volcado de memoria RAM (.mem, .vmem, .raw, .dmp)
+  - Para analizar procesos, conexiones, credenciales, malware EN MEMORIA
+  - Distinto de Autopsy/FTK (que analizan disco). Volatility analiza RAM.
+  - Datos volátiles: procesos, conexiones activas, contraseñas en memoria,
+    DLLs cargadas, historial de comandos, handles abiertos...
+
+¿VOL2 O VOL3?
+  - Vol2: necesita --profile (identificar el SO del volcado)
+  - Vol3: no necesita perfil, lo detecta solo (más moderno)
+  - En clase se usa Vol2 (sintaxis de las diapositivas)
+  - Vol3 tiene distinta sintaxis: windows.pslist en vez de pslist
+
+══════════════════════════════════════════════════════════════
+ FLUJO — VERIFICAR SI UN EQUIPO WINDOWS HA SIDO COMPROMETIDO
+══════════════════════════════════════════════════════════════
+
+  1. imageinfo
+       vol2 -f volcado.mem imageinfo
+       → Identificar perfil del SO (usar el primer sugerido)
+
+  2. pslist / pstree → usar easy-pstree-print.sh -w
+       vol2 -f volcado.mem --profile=<perfil> pslist > pslist.txt
+       vol2 -f volcado.mem --profile=<perfil> pstree > pstree.txt
+       bash easy-pstree-print.sh -w pstree.txt
+       → Procesos activos y árbol padre/hijo
+       → Buscar procesos con nombres sospechosos
+
+  3. psscan → usar hidden-process.sh
+       vol2 -f volcado.mem --profile=<perfil> psscan > psscan.txt
+       bash hidden-process.sh pslist.txt:3 psscan.txt:3
+       → Detectar procesos ocultos (en psscan pero no en pslist)
+
+  4. orphan-process-detector.sh   (Windows-only)
+       bash orphan-process-detector.sh -w pslist.txt
+       → Detectar PPIDs huérfanos (padre no existe en la lista)
+       → Técnica común de malware: lanzar hijo y matar al padre
+
+  5. cmdline / consoles
+       vol2 -f volcado.mem --profile=<perfil> cmdline
+       vol2 -f volcado.mem --profile=<perfil> consoles
+       → Ver qué ejecutó cada proceso y el output de los comandos
+       → consoles muestra input + output (más completo que cmdscan)
+
+  6. netscan → usar easy-netscan-print.sh -w
+       vol2 -f volcado.mem --profile=<perfil> netscan > netscan.txt
+       bash easy-netscan-print.sh -w netscan.txt
+       → Verde=LISTENING | Naranja=ESTABLISHED | Rojo=PID -1
+       → PID -1 = proceso fantasma con conexión activa → muy sospechoso
+
+  7. handles → usar sus-process-handles-detector.sh   (Windows-only)
+       vol2 -f volcado.mem --profile=<perfil> handles -p <PID> > handles.txt
+       bash sus-process-handles-detector.sh handles.txt
+       → Analizar procesos sospechosos identificados en pasos anteriores
+       → Detecta: conexiones red, acceso a credenciales, inyección de código
+
+  8. hashdump
+       vol2 -f volcado.mem --profile=<perfil> hashdump
+       → Extraer hashes NTLM de usuarios
+       → Crackear con: john --format=NT --wordlist=/usr/share/wordlists/rockyou.txt hash.txt
+       → Formato: usuario:RID:LM_hash:NTLM_hash
+
+  9. malfind → usar easy-malfind-reader.sh
+       vol2 -f volcado.mem --profile=<perfil> malfind > malfind.txt
+       bash easy-malfind-reader.sh malfind.txt
+       → Busca regiones de memoria con código inyectado
+       → Señales: PAGE_EXECUTE_READWRITE + cabecera MZ (ejecutable)
+       → Seguir con procdump -p <PID> -D /tmp/ para extraer el binario
+
+══════════════════════════════════════════════════════════════
+ FLUJO — VERIFICAR SI UN EQUIPO LINUX HA SIDO COMPROMETIDO
+══════════════════════════════════════════════════════════════
+
+  1. Identificar versión del kernel del volcado
+       strings volcado.mem | grep -i "Linux version" | head -5
+       → Sale algo como: Linux version 4.4.0-21-generic ... Ubuntu 16.04
+
+  2. Conseguir el perfil Linux (ver sección dedicada más abajo)
+       Opción A: descargar de volatilityfoundation/profiles  (rápido)
+       Opción B: compilarlo a mano si no existe ahí           (lento)
+
+  3. Verificar perfil cargado
+       vol2 --info | grep -i Ubuntu          # o el SO que sea
+       → Tiene que aparecer LinuxUbuntu1604x64 (o similar)
+
+  4. Procesos → usar easy-pstree-print.sh -l
+       vol2 -f volcado.mem --profile=<perfil> linux_pstree > pstree.txt
+       bash easy-pstree-print.sh -l pstree.txt
+       → Buscar procesos sospechosos: avml, reverse, nc, etc.
+       → Cadenas tipo cron→sh→python→sh = persistencia + reverse shell
+
+  5. Procesos ocultos → usar hidden-process.sh
+       vol2 -f volcado.mem --profile=<perfil> linux_pslist > pslist.txt
+       vol2 -f volcado.mem --profile=<perfil> linux_psscan > psscan.txt
+       bash hidden-process.sh pslist.txt:3 psscan.txt:3
+       → Procesos en psscan pero no en pslist = ocultos vía DKOM
+
+  6. Historial bash → linux_bash
+       vol2 -f volcado.mem --profile=<perfil> linux_bash > bash.txt
+       → Recupera el historial DESDE LA MEMORIA (no de .bash_history)
+       → Si el atacante hizo `echo "" > .bash_history` igual lo recuperas
+
+  7. Red → usar easy-netscan-print.sh -l
+       vol2 -f volcado.mem --profile=<perfil> linux_netstat > netstat.txt
+       bash easy-netscan-print.sh -l netstat.txt
+       → Buscar ESTABLISHED hacia IPs externas
+       → Atención a python/sh con conexiones activas (reverse shell)
+
+  8. File descriptors → linux_lsof   (clave para reverse shell)
+       vol2 -f volcado.mem --profile=<perfil> linux_lsof -p <PID>
+       → Si los FD 0, 1, 2 y 3 apuntan al MISMO socket [N]:
+            → stdin/stdout/stderr redirigidos a un socket
+            → REVERSE SHELL CONFIRMADA
+
+══════════════════════════════════════════════════════════════
+ INSTALAR UN PERFIL LINUX EN VOLATILITY 2
+══════════════════════════════════════════════════════════════
+
+Volatility 2 NO trae perfiles Linux por defecto. Hay dos formas:
+
+── OPCIÓN A: descargar perfil pre-compilado del repo oficial ──
+   (Lo más rápido si tu distro está en la lista)
+
+   Repositorio: https://github.com/volatilityfoundation/profiles
+
+   Estructura: Linux/<Distro>/<arch>/<Distro><Version>.zip
+   Ejemplos:
+     Linux/Ubuntu/x64/Ubuntu1604.zip
+     Linux/CentOS/x64/CentOS7.zip
+     Linux/Debian/x64/Debian9.zip
+
+   1. Identificar la versión del SO del volcado:
+        strings volcado.mem | grep -i "Linux version" | head -5
+        → Linux version 4.4.0-21-generic ... Ubuntu 16.04
+
+   2. Descargar el perfil correspondiente:
+        wget https://github.com/volatilityfoundation/profiles/raw/master/Linux/Ubuntu/x64/Ubuntu1604.zip
+
+   3. Copiar al directorio de overlays de Volatility:
+        sudo cp Ubuntu1604.zip /opt/volatility2/volatility/plugins/overlays/linux/
+
+   4. Verificar que se ha cargado:
+        vol2 --info | grep Ubuntu
+        → LinuxUbuntu1604x64 - A Profile for Linux Ubuntu 1604 x64
+
+   5. Usarlo:
+        vol2 -f volcado.mem --profile=LinuxUbuntu1604x64 linux_pslist
+
+── OPCIÓN B: compilar perfil propio ──
+   (Si tu distro no está en el repo, o necesitas un kernel exacto)
+
+   Requisitos: hay que ejecutarlo en un sistema con EL MISMO kernel
+   que el del volcado.
+
+   1. Instalar dependencias:
+        sudo apt install dwarfdump linux-headers-$(uname -r) build-essential
+
+   2. Compilar el módulo dwarf:
+        cd /opt/volatility2/tools/linux
+        make
+
+   3. Empaquetar el perfil:
+        zip $(lsb_release -i -s)$(lsb_release -r -s)_$(uname -r)_profile.zip \
+            ./module.dwarf /boot/System.map-$(uname -r)
+
+   4. Copiar a overlays:
+        sudo cp *.zip /opt/volatility2/volatility/plugins/overlays/linux/
+
+   5. Verificar:
+        vol2 --info | grep Linux
+
+══════════════════════════════════════════════════════════════
+ VOLATILITY 2 — WINDOWS
+══════════════════════════════════════════════════════════════
+
+ESTRUCTURA BASE:
+  vol2 -f <volcado.mem> --profile=<Perfil> <plugin>
+
+── PASO 0: IDENTIFICAR PERFIL ──────────────────────────────
+  vol2 -f volcado.mem imageinfo
+    → Sugiere perfiles compatibles (ej: Win7SP1x64)
+    → Usar el primero sugerido como --profile
+
+  vol2 -f volcado.mem --profile=Win7SP1x64 -h
+    → Muestra plugins disponibles para ese perfil
+
+── PROCESOS ─────────────────────────────────────────────────
+  pslist        → Lista procesos activos (PID, PPID, fecha inicio)
+  pstree        → Árbol de procesos (jerarquía hijo/padre)
+  psscan        → Escanea TODA la RAM buscando EPROCESS
+                  Detecta procesos ocultos (rootkits)
+  cmdline       → Argumentos de línea de comandos
+  cmdscan       → Historial de comandos CMD
+  consoles      → Historial CMD con input Y output (más completo)
+
+── DLLs Y HANDLES ──────────────────────────────────────────
+  dlllist                → DLLs cargadas por cada proceso
+  dlllist -p <PID>       → DLLs de un proceso concreto
+  handles -p <PID>       → Handles (ficheros, registro, etc.)
+
+── RED ──────────────────────────────────────────────────────
+  netscan       → Conexiones activas y puertos en escucha
+  connections   → Solo XP/2003 (TCP activas)
+  connscan      → Escaneo (incluye conexiones cerradas)
+
+── CREDENCIALES / HASHES ───────────────────────────────────
+  hashdump      → Hashes LM:NTLM de usuarios del SAM
+  lsadump       → Secretos LSA (contraseñas de servicios)
+  truecryptsummary       → Localiza contenedores TrueCrypt en RAM
+  truecryptpassphrase    → Extrae la passphrase si está en memoria
+
+── REGISTRO ─────────────────────────────────────────────────
+  hivelist                                  → Colmenas cargadas
+  printkey -K "SAM\Domains\Account\Users"   → Leer clave concreta
+  shutdowntime                              → Hora del último apagado
+
+── VOLCADO DE PROCESOS ──────────────────────────────────────
+  memdump -p <PID> -D /tmp/   → Memoria completa del proceso
+  procdump -p <PID> -D /tmp/  → Solo el ejecutable (.exe)
+
+── FICHEROS ─────────────────────────────────────────────────
+  filescan                          → Ficheros mapeados en memoria
+  dumpfiles -Q <offset> -D /tmp/    → Extrae fichero por offset
+
+── ARTEFACTOS WINDOWS ──────────────────────────────────────
+  shimcache     → Caché de aplicaciones ejecutadas (persistencia)
+  userassist    → Programas ejecutados desde el explorador
+  mftparser     → Parsea la MFT del NTFS
+  notepad       → Texto en notepad (no compatible con todos los perfiles)
+
+── MALWARE / ANÁLISIS ───────────────────────────────────────
+  malfind       → Regiones de memoria con código inyectado
+                  Ver: PAGE_EXECUTE_READWRITE + cabecera MZ
+  apihooks      → Detecta hooks en API (rootkits, inyección)
+  svcscan       → Servicios de Windows registrados
+
+── MISC ─────────────────────────────────────────────────────
+  envars        → Variables de entorno de los procesos
+  screenshot -D /tmp/   → Captura de pantalla desde memoria gráfica
+  clipboard     → Contenido del portapapeles en el momento del volcado
+
+══════════════════════════════════════════════════════════════
+ VOLATILITY 2 — LINUX
+══════════════════════════════════════════════════════════════
+
+ESTRUCTURA BASE:
+  vol2 -f volcado.mem --profile=Linux<Distro><Ver>x64 linux_<plugin>
+
+── PROCESOS ─────────────────────────────────────────────────
+  linux_pslist     → Procesos con fecha de inicio (NO incluye PPID)
+  linux_psaux      → Procesos activos (formato ps aux)
+  linux_pstree     → Árbol de procesos
+  linux_psscan     → Escaneo de task_struct (detecta ocultos)
+  linux_psenv      → Variables de entorno de los procesos
+
+── RED ──────────────────────────────────────────────────────
+  linux_netstat    → Conexiones de red
+                     (filtrar UNIX sockets: | grep -v UNIX)
+  linux_ifconfig   → Interfaces, IPs y MACs
+  linux_arp        → Tabla ARP caché
+
+── FICHEROS / SISTEMA ───────────────────────────────────────
+  linux_lsof              → Ficheros abiertos (incluye sockets)
+                            ÚTIL PARA DETECTAR REVERSE SHELLS
+  linux_lsof -p <PID>     → Solo de un proceso
+  linux_find_file         → Busca y extrae ficheros de la caché
+  linux_enumerate_files   → Listado de ficheros/directorios
+  linux_mount             → Discos montados
+
+── SHELL / COMANDOS ─────────────────────────────────────────
+  linux_bash       → Historial de bash en memoria
+                     (sobrevive aunque borren .bash_history)
+  linux_cmdline    → Línea de comandos de cada proceso
+  linux_dmesg      → Mensajes del kernel
+
+── MALWARE ──────────────────────────────────────────────────
+  linux_malfind    → Regiones RWX con código inyectado
+                     (mismo formato que malfind de Windows,
+                      compatible con easy-malfind-reader.sh)
+
+── IoCs LINUX (vistos en Práctica 2) ───────────────────────
+  - Reverse shell:
+      linux_lsof -p <PID> con FDs 0,1,2,3 apuntando al MISMO
+      socket [N] → stdin/stdout/stderr redirigidos al socket.
+
+  - Persistencia vía cron:
+      Cadena cron → sh → python → sh visible en linux_pstree.
+      Indica que el cron lanza el script malicioso periódicamente.
+
+  - Procesos ocultos:
+      Comparar linux_pslist vs linux_psscan con hidden-process.sh.
+      Procesos en psscan pero no en pslist → DKOM rootkit.
+
+  - Borrado de historial:
+      Aunque hagan `echo "" > /root/.bash_history`, linux_bash
+      lee la memoria del proceso bash y recupera el historial.
+
+  - Nombres ofuscados:
+      Ficheros como '.. ' (dos espacios), '..  ' o '...' en /var/tmp
+      o /tmp son técnicas comunes para esconder scripts maliciosos.
+
+  - Exfiltración por HTTP simple:
+      `python -m SimpleHTTPServer 80` levanta un server temporal
+      para que el atacante descargue ficheros desde fuera.
+
+══════════════════════════════════════════════════════════════
+ VOLATILITY 3 — SINTAXIS DIFERENTE
+══════════════════════════════════════════════════════════════
+
+  Vol3 NO necesita perfil. Detecta el SO automáticamente.
+
+  Windows:
+    vol3 -f volcado.mem windows.info          → info del sistema
+    vol3 -f volcado.mem windows.pslist        → procesos
+    vol3 -f volcado.mem windows.pstree        → árbol procesos
+    vol3 -f volcado.mem windows.psscan        → escaneo procesos
+    vol3 -f volcado.mem windows.cmdline       → argumentos procesos
+    vol3 -f volcado.mem windows.netscan       → conexiones red
+    vol3 -f volcado.mem windows.netstat       → estado conexiones
+    vol3 -f volcado.mem windows.hashdump      → hashes usuarios
+    vol3 -f volcado.mem windows.malfind       → código inyectado
+    vol3 -f volcado.mem windows.dlllist       → DLLs cargadas
+    vol3 -f volcado.mem windows.filescan      → ficheros en memoria
+    vol3 -f volcado.mem windows.registry.hivelist  → colmenas registro
+
+  Linux:
+    vol3 -f volcado.mem linux.pslist
+    vol3 -f volcado.mem linux.bash
+    vol3 -f volcado.mem linux.netstat
+    vol3 -f volcado.mem linux.lsof
+    vol3 -f volcado.mem linux.malfind
+
+══════════════════════════════════════════════════════════════
+ PERFILES WINDOWS COMUNES (vol2)
+══════════════════════════════════════════════════════════════
+
+  WinXPSP2x86 / WinXPSP3x86
+  Win7SP0x86 / Win7SP1x86 / Win7SP1x64
+  Win8SP0x86 / Win8SP1x64
+  Win10x64 / Win10x64_19041
+  Win2008R2SP1x64 / Win2008R2SP1x64_23418
+  Win2012R2x64
+
+══════════════════════════════════════════════════════════════
+ PERFILES LINUX HABITUALES (vol2, descargables del repo)
+══════════════════════════════════════════════════════════════
+
+  LinuxUbuntu1404x64    Ubuntu 14.04 LTS
+  LinuxUbuntu1604x64    Ubuntu 16.04 LTS  (Práctica 2)
+  LinuxUbuntu1804x64    Ubuntu 18.04 LTS
+  LinuxUbuntu2004x64    Ubuntu 20.04 LTS
+  LinuxCentOS7x64       CentOS 7
+  LinuxDebian9x64       Debian 9
+  LinuxKali2020x64      Kali 2020
+
+══════════════════════════════════════════════════════════════
+ TIPS
+══════════════════════════════════════════════════════════════
+
+  - Redirigir output:    vol2 ... pslist > resultado.txt
+  - Filtrar:             vol2 ... pslist | grep notepad
+  - Vol2 sintaxis:       plugin sin prefijo  (pslist, netscan...)
+  - Vol3 sintaxis:       windows.plugin / linux.plugin
+  - imageinfo solo en vol2; vol3 usa windows.info
+  - psscan > pslist para detectar rootkits (escanea toda la RAM)
+  - malfind + procdump → sacar binario → strings / md5sum / AV
+
+  - Para analizar varios handles a la vez:
+      for f in handle*.txt; do
+          echo "====== $f ======"
+          bash sus-process-handles-detector.sh "$f"
+      done
+
+  - Calcular hash del volcado al inicio (cadena de custodia):
+      sha1sum volcado.mem > volcado.sha1
+
+  - Si un plugin falla con "command does not support the profile":
+      probar perfiles alternativos sugeridos por imageinfo, o
+      cambiar a Vol3 (que no depende de perfil).
