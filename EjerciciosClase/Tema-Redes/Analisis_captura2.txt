@@ -1,0 +1,72 @@
+================================================================
+  ANÁLISIS — captura2.pcapng
+  D1n0sXIX - Alejando Mamán López-Mingo
+================================================================
+
+HERRAMIENTA: Wireshark
+
+----------------------------------------------------------------
+PASO 1 — Vista general
+----------------------------------------------------------------
+Al abrir la captura se observa:
+- Tráfico HTTP en puerto 80 (no cifrado, a diferencia del anterior)
+- Dos IPs involucradas:
+    * 192.168.0.121  (cliente)
+    * 192.168.0.115  (servidor)
+- 3 streams TCP, todos de corta duración
+
+----------------------------------------------------------------
+PASO 2 — Filtrar tráfico HTTP
+----------------------------------------------------------------
+Filtro aplicado en Wireshark:
+    http
+
+Se identifican 3 peticiones HTTP:
+
+  GET /                  -> 200 OK  (text/html)
+  GET /favicon.ico       -> 404 Not Found
+  GET /download/web.zip  -> 200 OK  (application/zip)
+
+----------------------------------------------------------------
+PASO 3 — Extraer objetos HTTP
+----------------------------------------------------------------
+Mediante File > Export Objects > HTTP se extraen los ficheros
+transferidos en la captura.
+
+Ficheros disponibles:
+  - /             (página HTML)
+  - favicon.ico   (no existe en el servidor, 404)
+  - web.zip       (archivo ZIP descargado)
+
+Se guarda web.zip. Al intentar descomprimirlo pide contraseña.
+Contenido del ZIP:
+  - whoami.exe
+  - flag.txt
+
+----------------------------------------------------------------
+PASO 4 — Buscar la contraseña en la captura
+----------------------------------------------------------------
+Se hace Follow TCP Stream sobre el stream del GET /
+(página principal del servidor).
+
+En el contenido HTML se encuentra:
+  - Mensaje indicando que el sitio pertenece a una APT
+  - Aviso de acceso no autorizado
+  - FLAG 2 en el contenido de la página
+
+----------------------------------------------------------------
+CONCLUSIONES
+----------------------------------------------------------------
+- 192.168.0.121 accede a un servidor web malicioso en .115
+- El servidor aloja un sitio de phishing/APT
+- Desde ese servidor se descarga un ZIP con un ejecutable
+  (whoami.exe) — posible malware o herramienta de post-explotacion
+- La contraseña del ZIP y el flag estaban embebidos en el
+  HTML de la página principal, visible en texto claro
+
+----------------------------------------------------------------
+FLAG
+----------------------------------------------------------------
+flag2{08e52b7ebdba44c89b665f1825ea1c55}
+
+================================================================

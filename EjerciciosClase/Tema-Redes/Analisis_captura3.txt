@@ -1,0 +1,77 @@
+================================================================
+  ANÁLISIS — captura3.pcap
+  D1n0sXIX - Alejandro Mamán López-Mingo
+================================================================
+
+HERRAMIENTA: Wireshark + tshark
+
+Contraseña del ZIP: abc123..  (obtenida con zip2john + john + rockyou.txt)
+
+----------------------------------------------------------------
+PASO 1 — Vista general
+----------------------------------------------------------------
+Al abrir la captura se observa una distribución muy inusual:
+  - 37 paquetes TCP  (puerto 80, HTTP)
+  - 4402 paquetes UDP DNS  <-- muy sospechoso
+
+IPs involucradas:
+    * 192.168.0.133  (cliente/víctima)
+    * 192.168.0.115  (servidor)
+
+----------------------------------------------------------------
+PASO 2 — Analizar el stream TCP (HTTP)
+----------------------------------------------------------------
+Filtro: http
+Follow TCP Stream sobre el paquete HTTP revela:
+
+  GET /powercat.ps1
+
+La víctima descarga powercat desde un repositorio de GitHub.
+Powercat es el equivalente en PowerShell de netcat,
+utilizado para establecer reverse shells.
+
+----------------------------------------------------------------
+PASO 3 — Analizar el tráfico DNS (DNS Tunneling)
+----------------------------------------------------------------
+Filtro: dns
+
+Las queries DNS tienen subdominios en HEXADECIMAL con dominio
+base siempre igual: u-tad.com
+
+Esto es DNS Tunneling: técnica para exfiltrar datos
+codificados en hex dentro de queries DNS, aprovechando que
+el tráfico DNS raramente se bloquea en firewalls.
+
+Filtro para ver solo queries:
+    dns.flags.response == 0
+
+----------------------------------------------------------------
+PASO 4 — Reconstruir los datos exfiltrados
+----------------------------------------------------------------
+Extracción de subdominios y decodificación hex a texto:
+
+    tshark -r captura3.pcap -Y "dns.flags.response == 0" \
+      -T fields -e dns.qry.name 2>/dev/null \
+      | sed 's/\.u-tad\.com//' \
+      | tr -d '\n' \
+      | xxd -r -p \
+      | grep -a "flag"
+
+Resultado: listado de ficheros .dll y .exe del sistema
+de la víctima con fechas, exfiltrado por DNS tunneling.
+
+----------------------------------------------------------------
+CONCLUSIONES
+----------------------------------------------------------------
+1. La víctima descarga powercat.ps1 (herramienta de reverse shell)
+2. El atacante usa DNS tunneling para exfiltrar información
+   del sistema (listado de ficheros) codificada en hexadecimal
+   como subdominios de u-tad.com
+3. El tráfico DNS pasa desapercibido al no estar bloqueado
+
+----------------------------------------------------------------
+FLAG
+----------------------------------------------------------------
+flag4{1cc336a02c76f05f39feb0782d39fcfa}
+
+================================================================

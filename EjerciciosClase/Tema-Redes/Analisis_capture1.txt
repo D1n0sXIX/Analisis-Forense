@@ -1,0 +1,67 @@
+================================================================
+  ANÁLISIS — capture1.pcap
+  D1n0sXIX - Alejandro Mamán
+================================================================
+
+HERRAMIENTA: Wireshark
+
+----------------------------------------------------------------
+PASO 1 — Vista general
+----------------------------------------------------------------
+Al abrir la captura se observa:
+- Tráfico mayoritariamente TCP con algo de SSL
+- Dos IPs involucradas:
+    * 192.168.0.115
+    * 192.168.0.153
+- Paquetes con flags: SYN, SYN-ACK, ACK, PSH, RST
+
+- Identifico un paquete extraño marcado en rojo
+
+----------------------------------------------------------------
+PASO 2 — Identificar los streams (Statistics > Conversations)
+----------------------------------------------------------------
+Hay exactamente 2 streams TCP:
+
+  Stream 0: 192.168.0.153:45632 <-> 192.168.0.115:443
+            - Conexión larga (~83 segundos, 94 paquetes)
+            - Tráfico bidireccional
+            - PRINCIPAL
+
+  Stream 1: 192.168.0.153:50070 -> 192.168.0.115:443
+            - Solo 2 paquetes
+            - Termina en RST (paquete en rojo en Wireshark)
+            - Conexión rechazada
+
+Filtros Wireshark usados:
+    tcp.stream == 0    -> Stream principal (beacon)
+    tcp.stream == 1    -> Conexión rechazada (RST)
+
+----------------------------------------------------------------
+PASO 3 — Analizar el Stream 0 (Follow > TCP Stream)
+----------------------------------------------------------------
+Al hacer Follow TCP Stream sobre el stream 0 se observan
+comandos en TEXTO CLARO a pesar de usar el puerto 443.
+
+Esto confirma dos cosas:
+  1. El tráfico NO está cifrado (no es HTTPS real)
+  2. Es una REVERSE SHELL camuflada en el puerto 443
+
+----------------------------------------------------------------
+CONCLUSIONES
+----------------------------------------------------------------
+Tipo de actividad detectada: BEACON - REVERSE SHELL
+
+- 192.168.0.153 es la víctima (origen de la conexión saliente)
+- 192.168.0.115:443 es el C2 (Command & Control) del atacante
+
+El atacante usa el puerto 443 para camuflar la conexión como
+tráfico HTTPS legítimo y evadir detección (técnica beacon).
+Al hacer Follow TCP Stream se puede leer la sesión completa
+en texto claro, incluyendo comandos ejecutados remotamente.
+
+----------------------------------------------------------------
+FLAG
+----------------------------------------------------------------
+flag1{c09de9fd4f430e051d4a658ae2aaa10c}
+
+================================================================

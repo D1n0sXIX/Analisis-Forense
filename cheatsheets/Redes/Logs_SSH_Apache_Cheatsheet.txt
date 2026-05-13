@@ -1,0 +1,241 @@
+================================================================
+  ANALISIS DE LOGS — SSH, Apache y otros servicios Linux
+  D1n0sXIX - Alejandro Mamán López-Mingo
+================================================================
+
+================================================================
+  1. DONDE ESTAN LOS LOGS EN LINUX
+================================================================
+
+/var/log/auth.log       -> Autenticaciones SSH, sudo, login (MUY IMPORTANTE)
+/var/log/syslog         -> Mensajes generales del sistema
+/var/log/kern.log       -> Errores e informacion del kernel
+/var/log/dpkg.log       -> Paquetes instalados/desinstalados
+/var/log/apache2/       -> Logs del servidor web Apache
+  access.log              -> Todas las peticiones HTTP recibidas
+  error.log               -> Errores del servidor
+/var/log/nginx/         -> Logs del servidor web Nginx
+/var/log/faillog        -> Intentos de login fallidos
+/var/log/btmp           -> Intentos de login fallidos (binario, usar lastb)
+/var/log/wtmp           -> Historial de logins (binario, usar last)
+/var/log/lastlog        -> Ultimo login de cada usuario (usar lastlog)
+
+# Ver todos los logs disponibles
+ls /var/log/
+
+
+================================================================
+  2. COMANDOS PARA LEER LOGS
+================================================================
+
+# Leer log normal
+cat /var/log/auth.log
+
+# Leer log comprimido (.gz)
+zcat /var/log/auth.log.1.gz
+
+# Ver en tiempo real (tail -f)
+tail -f /var/log/auth.log
+
+# Ver las ultimas N lineas
+tail -n 100 /var/log/auth.log
+
+# Buscar cadena en log
+grep "Failed" /var/log/auth.log
+grep "Failed" /var/log/auth.log.gz   # NO funciona
+zgrep "Failed" /var/log/auth.log.gz  # Correcto para .gz
+
+# Contar ocurrencias
+grep "Failed" /var/log/auth.log | wc -l
+
+# Extraer un campo concreto (awk)
+awk '{print $1, $2, $3}' /var/log/auth.log   # fecha y hora
+awk '{print $9}' /var/log/access.log         # codigo HTTP en Apache
+
+# Filtrar por rango de red (grepcidr)
+grepcidr "192.168.1.0/24" /var/log/auth.log
+
+
+================================================================
+  3. ANALISIS DE LOGS SSH (/var/log/auth.log)
+================================================================
+
+--- VER INTENTOS DE LOGIN FALLIDOS ---
+grep "Failed password" /var/log/auth.log
+grep "Invalid user" /var/log/auth.log
+grep "authentication failure" /var/log/auth.log
+
+# Aspecto de un intento fallido:
+# Jan 15 10:23:45 server sshd[1234]: Failed password for root from 192.168.1.50 port 54321 ssh2
+# Jan 15 10:23:46 server sshd[1234]: Invalid user admin from 192.168.1.50 port 54322
+
+--- VER LOGINS EXITOSOS ---
+grep "Accepted password" /var/log/auth.log
+grep "Accepted publickey" /var/log/auth.log
+
+# Aspecto de un login exitoso:
+# Jan 15 10:25:00 server sshd[1235]: Accepted password for root from 192.168.1.50 port 54323 ssh2
+
+--- DETECTAR FUERZA BRUTA ---
+# Muchos "Failed password" desde la misma IP en poco tiempo
+grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn
+# Muestra: cuantos intentos fallidos por cada IP
+
+# Ver a que usuarios se ataco
+grep "Failed password" /var/log/auth.log | awk '{print $9}' | sort | uniq -c | sort -rn
+
+--- DETECTAR BOTS / HYDRA ---
+# Hydra y otros tools dejan muchos intentos seguidos en microsegundos
+# Buscar: muchos intentos fallidos de la misma IP, usuarios aleatorios
+grep "Failed password" /var/log/auth.log | grep "192.168.1.50"
+
+--- COMANDOS DE SESION ---
+# Ver historial de logins (exitosos + fallidos)
+last                    # Login exitosos (lee /var/log/wtmp)
+lastb                   # Login fallidos (lee /var/log/btmp)
+lastlog                 # Ultimo login de cada usuario
+who                     # Usuarios conectados ahora mismo
+w                       # Usuarios conectados + que estan haciendo
+
+# Aspecto de last:
+# root     pts/0        192.168.1.50     Mon Jan 15 10:25 - 10:30  (00:05)
+# Campos: usuario, terminal (pts=SSH, tty=local), IP, fecha/hora
+
+
+================================================================
+  4. TTY vs PTS (importante para SSH)
+================================================================
+
+tty  -> Terminal fisica conectada directamente al equipo (acceso local)
+pts  -> Terminal emulada (acceso remoto via SSH, Putty, Xterm)
+
+# Si en los logs ves pts/0, pts/1... -> acceso por SSH (remoto)
+# Si ves tty1, tty2... -> acceso fisico local
+
+# Esto es util para saber si el atacante accedio remotamente (pts)
+# o tuvo acceso fisico a la maquina (tty)
+
+
+================================================================
+  5. ANALISIS DE LOGS APACHE (/var/log/apache2/access.log)
+================================================================
+
+--- FORMATO DEL LOG ---
+# IP - usuario [fecha] "METODO /ruta HTTP/version" codigo bytes
+# Ejemplo:
+# 192.168.1.50 - - [15/Jan/2024:10:23:45 +0000] "GET /admin HTTP/1.1" 200 1234
+# 192.168.1.50 - - [15/Jan/2024:10:23:46 +0000] "POST /login HTTP/1.1" 401 456
+
+--- BUSQUEDAS UTILES ---
+# Ver todas las peticiones de una IP
+grep "192.168.1.50" /var/log/apache2/access.log
+
+# Ver solo peticiones POST (posible fuerza bruta o exfiltracion)
+grep "POST" /var/log/apache2/access.log
+
+# Ver errores 404 (escaneo de rutas)
+grep " 404 " /var/log/apache2/access.log
+
+# Ver errores 403 (acceso denegado a rutas restringidas)
+grep " 403 " /var/log/apache2/access.log
+
+# Ver respuestas exitosas 200
+grep " 200 " /var/log/apache2/access.log
+
+# Ver intentos a rutas de admin o sensibles
+grep -i "admin\|wp-admin\|phpmyadmin\|shell\|cmd" /var/log/apache2/access.log
+
+# Ver intentos de path traversal
+grep "\.\." /var/log/apache2/access.log
+
+# Contar peticiones por IP
+awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -rn
+
+# Ver que User-Agent uso el atacante
+grep "192.168.1.50" /var/log/apache2/access.log | awk -F'"' '{print $6}'
+
+--- SEÑALES DE ATAQUE EN LOGS APACHE ---
+# Fuerza bruta:    muchos POST a /login desde la misma IP
+# Escaneo:         muchos 404 seguidos, rutas aleatorias o conocidas
+# SQLi/XSS:        URLs con caracteres como ' " < > ; -- en la ruta
+# Shell upload:    peticion PUT o POST seguida de GET a un .php raro
+# Path traversal:  "../../../etc/passwd" en la URL
+
+
+================================================================
+  6. OTROS LOGS RELEVANTES
+================================================================
+
+--- LOG DE PAQUETES INSTALADOS ---
+cat /var/log/dpkg.log
+grep "install" /var/log/dpkg.log
+# Un atacante puede instalar herramientas -> buscar instalaciones en fechas sospechosas
+
+--- LOG DEL KERNEL ---
+cat /var/log/kern.log
+# Errores, modulos cargados, dispositivos
+# Un rootkit puede aparecer como modulo cargado aqui
+
+--- HISTORIAL DE COMANDOS ---
+cat /home/usuario/.bash_history
+cat /root/.bash_history
+# Si esta vacio o borrado -> señal de que el atacante lo limpio
+
+
+================================================================
+  7. RED FLAGS EN LOGS
+================================================================
+
+SSH:
+  - Muchos "Failed password" en poco tiempo        -> fuerza bruta
+  - "Failed password for root"                     -> ataque a root
+  - "Invalid user" con nombres raros               -> usuario/pass inventory
+  - Login exitoso tras muchos fallidos             -> fuerza bruta exitosa
+  - Login desde IP externa no habitual             -> acceso no autorizado
+  - Acceso por pts (SSH) a horas inusuales         -> sospechoso
+  - "Accepted publickey" sin clave conocida        -> clave SSH intrusa
+
+Apache:
+  - Muchos 404 seguidos                            -> escaneo de rutas
+  - POST repetidos a /login                        -> fuerza bruta web
+  - ".." en URLs                                   -> path traversal
+  - "' OR 1=1" en URLs                             -> SQL injection
+  - "<script>" en URLs                             -> XSS
+  - Subida de .php, .jsp, .sh                      -> webshell upload
+  - User-Agent de scanner (nikto, sqlmap, nmap)    -> herramienta automatica
+
+General:
+  - Logs borrados o con huecos temporales          -> atacante los limpio
+  - Instalaciones de paquetes en horas inusuales   -> herramientas del atacante
+  - Comandos peligrosos en .bash_history           -> actividad del atacante
+
+
+================================================================
+  8. COMANDOS RAPIDOS PARA EL EXAMEN
+================================================================
+
+# ¿Cuantos intentos fallidos de SSH?
+grep "Failed password" /var/log/auth.log | wc -l
+
+# ¿Desde que IPs vienen los ataques SSH?
+grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn
+
+# ¿Hubo login exitoso tras los intentos?
+grep "Accepted" /var/log/auth.log
+
+# ¿Que usuarios se intentaron en SSH?
+grep "Failed password" /var/log/auth.log | awk '{print $9}' | sort | uniq -c | sort -rn
+
+# ¿Quien ha iniciado sesion en el sistema?
+last | head -20
+
+# ¿Que IPs atacaron el servidor web?
+awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -rn | head -10
+
+# ¿Hay escaneo de rutas?
+grep " 404 " /var/log/apache2/access.log | awk '{print $1}' | sort | uniq -c | sort -rn
+
+# ¿Se instalaron herramientas sospechosas?
+grep "install" /var/log/dpkg.log | grep -v "automatic"
+
+================================================================

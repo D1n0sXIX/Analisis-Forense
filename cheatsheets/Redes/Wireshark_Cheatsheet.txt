@@ -1,0 +1,339 @@
+================================================================
+  WIRESHARK — Cheatsheet completo para examen
+  D1n0sXIX - Alejandro Mamán López-Mingo
+================================================================
+
+================================================================
+  1. INTERFAZ — Lo basico
+================================================================
+
+Abrir PCAP:        File > Open
+Guardar captura:   File > Save As
+Exportar objetos:  File > Export Objects > HTTP / FTP / SMB
+Estadisticas:      Statistics > Conversations / Protocol Hierarchy
+Follow stream:     Click derecho sobre paquete > Follow > TCP/UDP/HTTP Stream
+Colorear reglas:   View > Coloring Rules
+
+
+================================================================
+  2. FILTROS DE VISUALIZACION — Sintaxis basica
+================================================================
+
+# Por protocolo
+http
+dns
+ftp
+ssh
+tcp
+udp
+icmp
+ssl
+tls
+arp
+smtp
+smb
+
+# Por IP
+ip.addr == 192.168.1.1          (origen O destino)
+ip.src == 192.168.1.1           (solo origen)
+ip.dst == 192.168.1.1           (solo destino)
+ip.addr == 192.168.1.0/24       (rango de red)
+
+# Por puerto
+tcp.port == 80
+tcp.port == 443
+udp.port == 53
+tcp.srcport == 4444
+tcp.dstport == 80
+
+# Operadores logicos
+http and ip.src == 192.168.1.1
+dns or http
+not arp
+tcp.port == 80 or tcp.port == 443
+
+# Por flags TCP
+tcp.flags.syn == 1              (SYN)
+tcp.flags.ack == 1              (ACK)
+tcp.flags.reset == 1            (RST)
+tcp.flags.fin == 1              (FIN)
+tcp.flags.push == 1             (PSH)
+tcp.flags.syn == 1 and tcp.flags.ack == 0    (SYN sin ACK = inicio conexion)
+
+# Por longitud/contenido
+tcp.len > 0                     (paquetes con datos)
+frame.len > 1000                (paquetes grandes)
+data.len > 0
+
+# Por stream index
+tcp.stream == 0
+tcp.stream == 1
+tcp.stream == 2
+
+# Por string en contenido (buscar texto)
+frame contains "password"
+frame contains "flag"
+http contains "login"
+
+
+================================================================
+  3. FOLLOW STREAM — Reconstruir conversaciones
+================================================================
+
+Como hacerlo:
+  Click derecho sobre un paquete > Follow > TCP Stream
+  (o UDP Stream / HTTP Stream segun el protocolo)
+
+Resultado:
+  - Muestra la conversacion completa en texto legible
+  - Rojo = datos enviados por el cliente
+  - Azul = datos enviados por el servidor
+  - Si esta cifrado -> solo se ven bytes ilegibles
+
+Filtro equivalente:
+  tcp.stream == N    (donde N es el numero del stream)
+
+Cuando usarlo:
+  - Ver contenido de una reverse shell
+  - Leer credenciales FTP en texto claro
+  - Ver paginas HTML servidas
+  - Reconstruir ficheros transferidos
+  - Ver comandos ejecutados remotamente
+
+
+================================================================
+  4. ESTADISTICAS UTILES
+================================================================
+
+Statistics > Protocol Hierarchy
+  -> Ver que protocolos hay y cuantos paquetes de cada uno
+  -> Util para tener una vision general rapida
+
+Statistics > Conversations > TCP
+  -> Ver todas las conversaciones TCP
+  -> Columnas: IPs, puertos, paquetes, bytes, duracion
+  -> Ordenar por duracion -> detectar beacons
+  -> Ordenar por frames -> detectar scans (muchas conexiones de 2 paquetes)
+
+Statistics > Conversations > UDP
+  -> Ver conversaciones UDP (DNS, etc.)
+  -> Muchas queries UDP a puerto 53 -> posible DNS tunneling
+
+Statistics > Endpoints
+  -> Ver que IPs participan y cuanto trafico generan
+
+Statistics > HTTP > Requests
+  -> Ver todas las peticiones HTTP y sus URLs
+
+Statistics > DNS
+  -> Ver queries DNS realizadas
+
+
+================================================================
+  5. EXPORT OBJECTS — Extraer ficheros de la captura
+================================================================
+
+File > Export Objects > HTTP
+  -> Extrae ficheros descargados por HTTP (ZIP, EXE, HTML...)
+
+File > Export Objects > FTP-DATA
+  -> Extrae ficheros transferidos por FTP
+
+File > Export Objects > SMB
+  -> Extrae ficheros compartidos por SMB
+
+File > Export Objects > DICOM / IMF
+  -> Para otros protocolos especificos
+
+
+================================================================
+  6. TIPOS DE ATAQUES — Como identificarlos en Wireshark
+================================================================
+
+----------------------------------------------------------------
+BEACON / REVERSE SHELL
+----------------------------------------------------------------
+Señales:
+  - Una conexion larga y sostenida (ver duracion en Conversations)
+  - Trafico bidireccional continuo
+  - Puerto inusual o puerto 443/80 sin cifrado real
+  - Al hacer Follow TCP Stream: comandos en texto claro
+
+Filtros:
+  tcp.stream == 0       (seguir el stream principal)
+  tcp.flags.push == 1   (paquetes con datos)
+
+Ejemplo visto: conexion a puerto 443 con shell interactiva en texto claro
+
+
+----------------------------------------------------------------
+PORT SCAN (Escaneo de puertos)
+----------------------------------------------------------------
+Señales:
+  - Un mismo origen conecta a muchisimos puertos distintos
+  - Cada conexion tiene solo 2-3 paquetes (SYN + RST o SYN + SYN-ACK)
+  - Muchos paquetes RST en respuesta (puertos cerrados)
+  - Todo ocurre en muy poco tiempo
+
+Filtros:
+  tcp.flags.syn == 1 and tcp.flags.ack == 0   (solo SYN = inicio scan)
+  tcp.flags.reset == 1                         (puertos cerrados)
+  ip.src == IP_atacante                        (ver todos sus intentos)
+
+En Conversations: muchas filas con duracion 0.000x segundos
+
+
+----------------------------------------------------------------
+DNS TUNNELING
+----------------------------------------------------------------
+Señales:
+  - Cantidad anormal de queries DNS (cientos o miles)
+  - Subdominios muy largos o con caracteres hexadecimales
+  - Siempre el mismo dominio base
+  - Poco trafico TCP pero mucho UDP/DNS
+
+Filtros:
+  dns                                    (ver todo el DNS)
+  dns.flags.response == 0                (solo queries, no respuestas)
+  udp.port == 53                         (trafico DNS)
+
+Reconstruir datos exfiltrados:
+  -> Copiar subdominios, quitar dominio base, decodificar hex
+
+
+----------------------------------------------------------------
+DESCARGA DE MALWARE POR HTTP
+----------------------------------------------------------------
+Señales:
+  - Peticion GET a una URL con extension .exe, .zip, .ps1, .jar
+  - Respuesta con Content-Type: application/zip, application/octet-stream
+  - Servidor web en IP privada o dominio sospechoso
+
+Filtros:
+  http                                   (ver todo HTTP)
+  http.request.method == "GET"           (ver descargas)
+  http.response.code == 200              (ver respuestas exitosas)
+  frame contains ".exe"                  (buscar extension)
+
+Extraer fichero:
+  File > Export Objects > HTTP
+
+
+----------------------------------------------------------------
+FUERZA BRUTA (SSH, FTP, HTTP login)
+----------------------------------------------------------------
+Señales:
+  - Muchas conexiones seguidas al mismo puerto (22, 21, 80)
+  - Conexiones muy cortas y repetitivas
+  - Muchos intentos de autenticacion fallidos seguidos
+
+Filtros:
+  ftp                                    (ver intentos FTP)
+  ssh                                    (ver intentos SSH)
+  http.request.method == "POST"          (ver intentos HTTP login)
+  frame contains "530"                   (FTP login failed)
+  frame contains "Failed"
+
+
+----------------------------------------------------------------
+PHISHING / SITIO MALICIOSO
+----------------------------------------------------------------
+Señales:
+  - Acceso a un servidor web con contenido sospechoso
+  - HTML con mensajes de advertencia, amenaza o urgencia
+  - Descarga automatica de ficheros tras visitar la pagina
+
+Filtros:
+  http                                   (ver trafico web)
+  http.response.code == 200              (paginas cargadas)
+
+Inspeccionar:
+  Follow HTTP Stream -> leer el HTML de la respuesta
+
+
+----------------------------------------------------------------
+ATAQUE CON RUIDO / DECOY (Distraccion)
+----------------------------------------------------------------
+Señales:
+  - Flood masivo de trafico en un protocolo (ICMP, UDP, TCP SYN)
+  - Un port scan visible y ruidoso mientras hay otro trafico mas discreto
+  - Trafico anormal en volumen que no corresponde a uso normal
+  - Al filtrar el ruido, aparece otra actividad sospechosa paralela
+
+Como detectarlo:
+  1. Identificar el trafico masivo/ruidoso y filtrarlo fuera
+  2. Ver que queda -> ahi esta la accion real del atacante
+  3. Comparar timestamps -> el ruido y la accion ocurren a la vez
+
+Filtros:
+  not icmp                               (eliminar flood ICMP)
+  not arp                                (eliminar ruido ARP)
+  not (tcp.flags.syn == 1 and tcp.flags.ack == 0)  (eliminar SYN scan)
+  ip.src != IP_ruidosa                   (ignorar la IP que genera ruido)
+
+Ejemplo tipico:
+  - Atacante lanza un port scan o ping flood visible (el ruido)
+  - Mientras tanto, otra conexion discreta extrae datos o instala backdoor
+  - En Conversations: el ruido tiene muchos paquetes pequenos,
+    la accion real tiene pocos paquetes pero con mas contenido
+
+----------------------------------------------------------------
+EXFILTRACION DE DATOS
+----------------------------------------------------------------
+Señales:
+  - Gran volumen de datos salientes hacia una IP externa
+  - Trafico en protocolos inusuales o puertos no estandar
+  - DNS con subdominios codificados (DNS tunneling)
+  - FTP o HTTP POST con datos codificados
+
+Filtros:
+  ip.dst == IP_sospechosa
+  tcp.len > 500                          (paquetes con mucho contenido)
+  http.request.method == "POST"          (datos enviados por HTTP)
+
+
+================================================================
+  7. REFERENCIA RAPIDA DE PUERTOS
+================================================================
+
+21    FTP (control)
+22    SSH
+23    Telnet
+25    SMTP (email)
+53    DNS
+80    HTTP
+110   POP3
+143   IMAP
+443   HTTPS
+445   SMB
+3306  MySQL
+3389  RDP (Escritorio Remoto Windows)
+4444  Metasploit por defecto
+12345 Puerto no estandar (sospechoso)
+4242  Puerto comun de reverse shells
+
+================================================================
+  8. TIPS PARA EL EXAMEN
+================================================================
+
+1. Siempre empezar por Statistics > Protocol Hierarchy
+   -> Da una vision general de que hay en la captura
+
+2. Luego Statistics > Conversations > TCP
+   -> Ordenar por duracion o frames para encontrar lo importante
+
+3. Aplicar filtro del protocolo principal que veas
+   -> http, dns, ftp, etc.
+
+4. Follow TCP Stream sobre el paquete mas sospechoso
+   -> Si se ve texto claro -> reverse shell, FTP, HTTP sin cifrar
+
+5. File > Export Objects si hay transferencia de ficheros
+
+6. Si hay mucho DNS -> posible tunneling -> filtrar queries y ver subdominios
+
+7. RST en respuesta a SYN -> puerto cerrado
+   SYN-ACK en respuesta a SYN -> puerto abierto
+   Muchos SYN a puertos distintos -> port scan
+
+================================================================
